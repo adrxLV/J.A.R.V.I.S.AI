@@ -26,7 +26,6 @@ This Ollama Virtual Assistant is an AI-powered voice assistant that interacts wi
 
 ---
 
-## **Table of Contents**
 
 ## **Table of Contents**
 
