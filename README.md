@@ -1,3 +1,4 @@
+![Banner](https://wallpaperaccess.com/full/3974453.jpg)
 <h1 align="center">🤖 <b>J.A.R.V.I.S.</b> Virtual Assistant</h1>
 <p align="center">
   A powerful <b>AI-driven virtual assistant</b> inspired by <b>J.A.R.V.I.S.</b>, capable of controlling your PC and responding intelligently using <b>Ollama models</b>.
@@ -100,6 +101,25 @@ Then, speak a command, and the assistant will process it using AI models and exe
 ## 📬 Contact
 Feel free to reach out for collaboration or suggestions:
 - **LinkedIn**: [Adriano Vilhena](https://www.linkedin.com/in/adriano-vilhena-a0493b332/)
+
+---
+
+<table align="center">
+  <tr>
+    <td align="center">
+      <a href="https://ollama.com/">
+        <img src="https://dev-to-uploads.s3.amazonaws.com/uploads/articles/qbosw7lyg8enfdqqi8ox.png" alt="Ollama" style="width: 200px; height: 200px;">
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://mistral.ai">
+        <img src="https://framerusercontent.com/images/DLqZSWwUcLevgxcdron1gb0WZ7c.png" alt="Mistral" style="width: 200px; height: 200px;">
+      </a>
+    </td>
+  </tr>
+</table>
+
+
 
 ---
 
