@@ -111,7 +111,8 @@ Then, speak a command, and the assistant will process it using AI models and exe
 │   │   ├── online_ops.py         # Online services and operations;
 │   │   ├── os_ops.py             # Local operations;
 │   ├── main.py                   # Main entry point;
-│   ├── utils.py                  # Some utility info.
+│   ├── utils.py                  # Some utility info;
+│   ├── .env                      # Api keys storage, e-mail, username, bot name, etc.
 ├──
 ```
 ---
