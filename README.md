@@ -1,4 +1,4 @@
-<h1 align="center">🤖 Ollama Virtual Assistant</h1>
+<h1 align="center">🤖 <b>J.A.R.V.I.S.</b> Virtual Assistant</h1>
 <p align="center">
   A powerful <b>AI-driven virtual assistant</b> inspired by <b>J.A.R.V.I.S.</b>, capable of controlling your PC and responding intelligently using <b>Ollama models</b>.
 </p>
