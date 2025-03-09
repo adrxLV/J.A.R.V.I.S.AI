@@ -48,6 +48,17 @@ python -m venv ollama_assistant_env
 ```bash
 pip install pyttsx3 requests speech_recognition python-decouple datetime random pprint langchain_core langchain_ollama langchain
 ```
+### 4️⃣ Configure Environment Variables
+Before running the assistant, you need to create a **.env** file in the project root directory with the following structure:
+```
+USER=YourName
+BOTNAME=JARVIS
+EMAIL=your.email@example.com
+PASSWORD=YourSecurePassword123
+NEWS_API_KEY=your_news_api_key
+OPENWEATHER_APP_ID=your_openweather_api_key
+TMDB_API_KEY=your_tmdb_api_key
+```
 
 ---
 
