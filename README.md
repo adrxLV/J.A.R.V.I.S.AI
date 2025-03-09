@@ -1,4 +1,7 @@
-![Banner](https://wallpaperaccess.com/full/3974453.jpg)
+<p align="center">
+  <img src="https://mir-s3-cdn-cf.behance.net/project_modules/disp/0f3ed952323519.5608d8fce47b2.png" width="200" height="200" />
+</p>
+
 <h1 align="center">🤖 <b>J.A.R.V.I.S.</b> Virtual Assistant</h1>
 <p align="center">
   A powerful <b>AI-driven virtual assistant</b> inspired by <b>J.A.R.V.I.S.</b>, capable of controlling your PC and responding intelligently using <b>Ollama models</b>.
