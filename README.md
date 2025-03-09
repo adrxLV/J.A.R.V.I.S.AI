@@ -29,12 +29,31 @@ This Ollama Virtual Assistant is an AI-powered voice assistant that interacts wi
 ## 🏗️ Installation & Setup
 To run this assistant, follow the steps below:
 
-### 1️⃣ Create a Virtual Environment
+### 1️⃣ Install Ollama
+Download and install Ollama by following the instructions for your OS:
+
+- **Windows:** Download the installer from [Ollama's official website](https://ollama.ai/) and follow the setup process.
+- **Mac:** Run the following command:
+  ```bash
+  brew install ollama
+  ```
+- **Linux:** Run the following command:
+  ```bash
+  curl -fsSL https://ollama.ai/install.sh | sh
+  ```
+
+### 2️⃣ Install the Mistral Model
+Once Ollama is installed, download the **Mistral** model by running on the command line:
+```bash
+ollama pull mistral
+```
+
+### 3️⃣ Create a Virtual Environment
 ```bash
 python -m venv ollama_assistant_env
 ```
 
-### 2️⃣ Activate the Virtual Environment
+### 4️⃣ Activate the Virtual Environment
 - **Windows:**
   ```bash
   ollama_assistant_env\Scripts\activate
@@ -44,11 +63,12 @@ python -m venv ollama_assistant_env
   source ollama_assistant_env/bin/activate
   ```
 
-### 3️⃣ Install Required Dependencies
+### 5️⃣ Install Required Dependencies
 ```bash
 pip install pyttsx3 requests speech_recognition python-decouple datetime random pprint langchain_core langchain_ollama langchain
 ```
-### 4️⃣ Configure Environment Variables
+
+### 6️⃣ Configure Environment Variables
 Before running the assistant, you need to create a **.env** file in the project root directory with the following structure:
 ```
 USER=YourName
@@ -83,4 +103,5 @@ Feel free to reach out for collaboration or suggestions:
 
 ---
 
-*This project is under ***MIT License****
+*This project is under **MIT License***
+
