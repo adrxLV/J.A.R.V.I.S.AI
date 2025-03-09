@@ -8,6 +8,12 @@
 
 ## 🚀 About the Project
 This Ollama Virtual Assistant is an AI-powered voice assistant that interacts with users through speech recognition and synthesis. Built using Python, it leverages Ollama models to process commands and perform various actions on your computer, making it an intelligent and hands-free assistant.
+<p align="left">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Speech%20Recognition-FF9900?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Text--to--Speech-007ACC?style=for-the-badge&logo=azure-speech-services&logoColor=white" />
+</p>
 
 ### 🔥 Features
 - 🗣️ **Voice-controlled assistant** – Uses speech recognition to process commands.
@@ -17,20 +23,27 @@ This Ollama Virtual Assistant is an AI-powered voice assistant that interacts wi
 
 ---
 
-## 🛠️ Tech Stack
-<p align="left">
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Speech%20Recognition-FF9900?style=for-the-badge" />
-  <img src="https://img.shields.io/badge/Text--to--Speech-007ACC?style=for-the-badge&logo=azure-speech-services&logoColor=white" />
-</p>
+## **Table of Contents**
 
----
+## **Table of Contents**
+
+- [🚀 About the Project](#-about-the-project)  
+- [🔥 Features](#-features)  
+- [🏗️ Installation & Setup](#-installation--setup)  
+- [🚀 Usage](#usage)  
+- [📜Project Structure](#project-structure)  
+- [License](#license)  
 
 ## 🏗️ Installation & Setup
 To run this assistant, follow the steps below:
 
-### 1️⃣ Install Ollama
+### Clone this Repo
+```
+git clone https://github.com/adrxLV/J.A.R.V.I.S.AI.git
+cd J.A.R.V.I.S.AI
+```
+
+### Install Ollama
 Download and install Ollama by following the instructions for your OS:
 
 - **Windows:** Download the installer from [Ollama's official website](https://ollama.ai/) and follow the setup process.
@@ -43,18 +56,18 @@ Download and install Ollama by following the instructions for your OS:
   curl -fsSL https://ollama.ai/install.sh | sh
   ```
 
-### 2️⃣ Install the Mistral Model
+### Install the Mistral Model
 Once Ollama is installed, download the **Mistral** model by running on the command line:
 ```bash
 ollama pull mistral
 ```
 
-### 3️⃣ Create a Virtual Environment
+### Create a Virtual Environment
 ```bash
 python -m venv ollama_assistant_env
 ```
 
-### 4️⃣ Activate the Virtual Environment
+### Activate the Virtual Environment
 - **Windows:**
   ```bash
   ollama_assistant_env\Scripts\activate
@@ -64,12 +77,12 @@ python -m venv ollama_assistant_env
   source ollama_assistant_env/bin/activate
   ```
 
-### 5️⃣ Install Required Dependencies
+### Install Required Dependencies
 ```bash
 pip install pyttsx3 requests speech_recognition python-decouple datetime random pprint langchain_core langchain_ollama langchain
 ```
 
-### 6️⃣ Configure Environment Variables
+### Configure Environment Variables
 Before running the assistant, you need to create a **.env** file in the project root directory with the following structure:
 ```
 USER=YourName
@@ -92,16 +105,16 @@ Then, speak a command, and the assistant will process it using AI models and exe
 
 ---
 
-## 🎯 Future Improvements
-- 🌍 Multi-language support
-- 🔍 Enhanced AI reasoning and automation
-
----
-
-## 📬 Contact
-Feel free to reach out for collaboration or suggestions:
-- **LinkedIn**: [Adriano Vilhena](https://www.linkedin.com/in/adriano-vilhena-a0493b332/)
-
+## 📜 Project Structure
+```
+├── J.A.R.V.I.S.AI/
+│   ├──functions/                 # some functions to make the V.A. work;
+│   │   ├── online_ops.py         # Online services and operations;
+│   │   ├── os_ops.py             # Local operations;
+│   ├── main.py                   # Main entry point;
+│   ├── utils.py                  # Some utility info.
+├──
+```
 ---
 
 <table align="center">
@@ -122,6 +135,6 @@ Feel free to reach out for collaboration or suggestions:
 
 
 ---
-
-*This project is under **MIT License***
+## License
+*This project is licensed under the **MIT License** - see the LICENSE file for details.*
 
