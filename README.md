@@ -10,7 +10,7 @@
 ---
 
 ## 🚀 About the Project
-This Ollama Virtual Assistant is an AI-powered voice assistant that interacts with users through speech recognition and synthesis. Built using Python, it leverages Ollama models to process commands and perform various actions on your computer, making it an intelligent and hands-free assistant.
+This Ollama Virtual Assistant is an AI-powered voice assistant that interacts with users through speech recognition and synthesis. Built using Python, it uses Ollama models to process commands and perform various actions on your computer, making it an intelligent and hands-free assistant.
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Ollama-000000?style=for-the-badge" />
