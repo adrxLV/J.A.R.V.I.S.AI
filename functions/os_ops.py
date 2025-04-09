@@ -2,7 +2,7 @@ import os
 import subprocess as sp
 
 paths = {
-    'discord': "C:\\Users\\adria\\AppData\\Local\\Discord\\app-1.0.9173\\Discord.exe",
+    'discord': "C:\\Users\\%user%\\AppData\\Local\\Discord\\app-1.0.9173\\Discord.exe",
     'calculator': "C:\\Windows\\System32\\calc.exe"
 }
 
