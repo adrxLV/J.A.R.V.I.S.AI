@@ -1,7 +1,17 @@
-#imports
+# Imports
+from time import sleep
+import io
+import sys
+import pygame
 import pyttsx3
+import openai
 import requests
 import speech_recognition as sr
+
+from gtts import gTTS
+from bs4 import BeautifulSoup
+from httpx import Client
+from swarm import Swarm, Agent
 from decouple import config
 from datetime import datetime
 from random import choice
@@ -9,12 +19,47 @@ from pprint import pprint
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
-from functions.online_ops import find_my_ip, get_latest_news, get_random_advice, get_random_joke, get_trending_movies, \
-    get_weather_report, play_on_youtube, search_on_google, search_on_wikipedia, send_email, send_whatsapp_message
-from functions.os_ops import open_calculator, open_camera, open_cmd, open_notepad, open_discord
+
+from functions.online_ops import (
+    find_my_ip, get_latest_news, get_random_advice, get_random_joke,
+    get_trending_movies, get_weather_report, play_on_youtube,
+    search_on_google, search_on_wikipedia, send_email, send_whatsapp_message
+)
+from functions.os_ops import (
+    open_calculator, open_camera, open_cmd, open_notepad,
+    open_discord, take_screenshot
+)
 from utils import opening_text
 
-# configs
+def give_weather_report():
+    ip_address = find_my_ip()
+    city = requests.get(f"https://ipapi.co/{ip_address}/city/").text
+    weather, temperature, feels_like = get_weather_report(city)
+    speak(
+        f"The current temperature is {temperature} degrees, but it feels like {feels_like} degrees. The weather report states: {weather}"
+    )
+    print(f"Description: {weather}\nTemperature: {temperature}\nFeels like: {feels_like}")
+
+def speak(text, lang="en"):
+    """Convert text to speech and play it without saving a file."""
+    tts = gTTS(text=text, lang=lang)
+
+    # Save to a BytesIO object instead of a file
+    mp3_fp = io.BytesIO()
+    tts.write_to_fp(mp3_fp)
+    mp3_fp.seek(0)
+
+    # Initialize pygame mixer and play audio
+    pygame.mixer.init()
+    pygame.mixer.music.load(mp3_fp, "mp3")
+    pygame.mixer.music.play()
+
+    # Keep the program running until the audio finishes
+    while pygame.mixer.music.get_busy():
+        pass
+
+
+# Configs
 USERNAME = config('USER')
 BOTNAME = config('BOTNAME')
 
@@ -22,60 +67,55 @@ engine = pyttsx3.init('sapi5')
 engine.setProperty('rate', 190)
 engine.setProperty('volume', 1.0)
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id)
+engine.setProperty('voice', voices[2].id)
 
 # AI to chat
 llm = OllamaLLM(model="mistral")  # change the model if needed
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are an AI assistant. Act like Jarvis."), #edit the pre-prompt if needed
+prompt_conversation = ChatPromptTemplate.from_messages([
+    ("system", "You are an AI assistant. Act like Jarvis."),  # edit the pre-prompt if needed
     ("user", "{question}")
 ])
 
 
-def speak(text: str):
-    """speaks the given text"""
-    engine.say(text)
-    engine.runAndWait()
-
-
 def listen():
-    """captures the speach"""
+    """Captures the speech"""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         print('Listening...')
-        recognizer.pause_threshold = 1
+        recognizer.pause_threshold = 2
         audio = recognizer.listen(source)
 
     try:
         print('Recognizing...')
         query = recognizer.recognize_google(audio, language='en-in')
     except Exception:
-        speak('Sorry, I could not understand. Could you please say that again?')
+        speak("Sorry, I couldn't get that.")
         return 'None'
     return query.lower()
 
 
 def chat_with_ai(question):
-    """AI to awenser questions"""
-    response = llm.invoke(prompt.format(question=question))
+    """AI to answer questions"""
+    response = llm.invoke(prompt_conversation.format(question=question))
     return response.strip()
 
 
 def greet_user():
-    """greets user with the date"""
+    """Greets user with the date"""
     hour = datetime.now().hour
     if 6 < hour < 12:
-        speak(f"Good Morning {USERNAME}")
+        speak(f"Good morning {USERNAME}")
     elif 12 <= hour < 16:
         speak(f"Good afternoon {USERNAME}")
     elif 16 <= hour < 19:
-        speak(f"Good Evening {USERNAME}")
+        speak(f"Good evening {USERNAME}")
     elif 19 >= hour < 6:
         speak(f"Good night {USERNAME}")
     speak(f"I am {BOTNAME}. How may I assist you?")
 
 
 if __name__ == '__main__':
+    trigger_speech_mode = "question"
     greet_user()
     while True:
         query = listen()
@@ -108,13 +148,16 @@ if __name__ == '__main__':
             speak('What do you want to search on Google?')
             search_query = listen()
             search_on_google(search_query)
-        elif "send a message" in query:
+        elif "send a message" in query:  # go to online_ops whatsapp function and change the country code
             speak('Enter the number in the console:')
             number = input("Enter the number: ")
             speak("What is the message?")
             message = listen()
-            send_whatsapp_message(number, message)
-            speak("Message sent.")
+            try:
+                send_whatsapp_message(number, message)
+                speak("Message sent.")
+            except:
+                print("Error in sending the message")
         elif "send an email" in query:
             speak("Enter email address in the console:")
             receiver_address = input("Enter email address: ")
@@ -143,12 +186,27 @@ if __name__ == '__main__':
             speak("Here are the latest news headlines.")
             print(*news, sep='\n')
         elif 'weather' in query:
-            ip_address = find_my_ip()
-            city = requests.get(f"https://ipapi.co/{ip_address}/city/").text
-            weather, temperature, feels_like = get_weather_report(city)
-            speak(f"The current temperature is {temperature}, but it feels like {feels_like}. The weather report states: {weather}")
-            print(f"Description: {weather}\nTemperature: {temperature}\nFeels like: {feels_like}")
-        elif 'jarvis' in query:
-            response = chat_with_ai(query)
-            speak(response)
-            print(response)
+            give_weather_report()
+        elif 'screenshot' in query:
+            speak("Opening the screenshot software.")
+            take_screenshot()
+        elif trigger_speech_mode in query:
+            print(f"{BOTNAME}: Would you like to proceed with Text or Speech Mode?")
+            speak("Would you like to proceed with Text or Speech Mode?")
+            mode = listen()
+            if 'text' in mode:
+                response = chat_with_ai(input())
+                print(response)
+                speak(response)
+            else:
+                speak("Proceeding to Speech Mode.")
+                question_to_ai = listen()
+                response = chat_with_ai(question_to_ai)
+                print(response)
+                speak(response)
+        elif 'bye' in query:
+            speak(f'Bye bye {USERNAME}, see you later!')
+            sleep(3)
+            speak('Proceeding to shutdown.')
+            speak('System offline.')
+            break
