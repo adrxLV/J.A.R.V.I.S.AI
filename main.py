@@ -6,7 +6,7 @@ import requests
 import speech_recognition as sr
 from langchain_core.prompts import ChatPromptTemplate
 
-from gui import gui, update_ui_output
+from gui import *
 from gtts import gTTS
 from decouple import config
 from datetime import datetime
@@ -21,18 +21,26 @@ from functions.os_ops import (
 )
 from langchain_ollama.llms import OllamaLLM
 
-# Configurações
+# Configuration settings
 USERNAME = config('USER')
 BOTNAME = config('BOTNAME')
-task_queue = queue.Queue()  # Fila para gerenciar tarefas
+task_queue = queue.Queue()  # Queue to manage tasks
 llm = OllamaLLM(model="mistral")
 prompt_conversation = ChatPromptTemplate.from_messages([
-    ("system", "You are an AI assistant. Act like Jarvis."),  # edit the pre-prompt if needed
-        ("user", "{question}")
+    ("system",
+     "You are JARVIS, an AI assistant for Adriano Vilhena, a student with interests in cybersecurity, AI, and software development. "
+     "Adriano speaks Portuguese and English and is currently doing an internship at CEiiA in Matosinhos. "
+     "Your tone must be friendly, professional, and respectful. You speak only when asked and never provide unsolicited information or opinions. "
+     "Keep your responses short, focused, and relevant to the question. Do not overexplain or go off-topic. Avoid texts above 200 chars if not asked for a long explanation. "
+     "Example: If Adriano says 'Hi there', you reply with 'Hi there Adriano, how are you?'. "
+     "Avoid robotic or overly formal language — speak naturally, like a helpful human. You are part of an ongoing conversation, not sending messages.")
+    ,
+    ("user", "{question}")
 ])
 
+
 def speak(text, lang="en"):
-    """Converte texto em fala e reproduz."""
+    """Convert text to speech and play it."""
     tts = gTTS(text=text, lang=lang)
     mp3_fp = io.BytesIO()
     tts.write_to_fp(mp3_fp)
@@ -45,7 +53,7 @@ def speak(text, lang="en"):
 
 
 def listen():
-    """Reconhece entrada de fala do usuário."""
+    """Recognize user speech input."""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         print('Listening...')
@@ -61,9 +69,8 @@ def listen():
 
 
 def chat_with_ai(question):
-    """Utiliza o modelo de IA para responder uma pergunta."""
+    """Use the AI model to respond to a question."""
     try:
-        # Passando question como string diretamente
         response = llm.invoke(prompt_conversation.format(question=question))
         return response.strip()
     except Exception as e:
@@ -72,7 +79,7 @@ def chat_with_ai(question):
 
 
 def handle_command(query):
-    """Processa comandos de voz ou texto."""
+    """Process voice or text commands."""
     if 'open notepad' in query:
         open_notepad()
     elif 'hello there' in query:
@@ -91,20 +98,24 @@ def handle_command(query):
         speak(f'Your IP Address is {ip_address}.')
         update_ui_output(f'Your IP Address is {ip_address}')
     elif 'wikipedia' in query:
+        # Handles Wikipedia search requests
         speak('What do you want to search on Wikipedia?')
         search_query = listen()
         results = search_on_wikipedia(search_query)
         speak(f"According to Wikipedia, {results}")
         update_ui_output(results)
     elif 'youtube' in query:
+        # Handles YouTube video playback
         speak('What do you want to play on YouTube?')
         video = listen()
         play_on_youtube(video)
     elif 'search on google' in query:
+        # Handles Google search requests
         speak('What do you want to search on Google?')
         search_query = listen()
         search_on_google(search_query)
     elif "send a message" in query:
+        # Handles sending WhatsApp messages
         speak('Enter the number in the console:')
         number = input("Enter the number: ")
         speak("What is the message?")
@@ -112,6 +123,7 @@ def handle_command(query):
         send_whatsapp_message(number, message)
         speak("Message sent.")
     elif "send an email" in query:
+        # Handles sending emails
         speak("Enter email address in the console:")
         receiver_address = input("Enter email address: ")
         speak("What should be the subject?")
@@ -123,23 +135,30 @@ def handle_command(query):
         else:
             speak("Error sending email.")
     elif 'joke' in query:
+        # Tells a random joke
         joke = get_random_joke()
         speak(joke)
         update_ui_output(joke)
     elif "advice" in query:
+        # Provides random advice
         advice = get_random_advice()
         speak(advice)
         update_ui_output(advice)
     elif "trending movies" in query:
+        # Fetches trending movies
         task_queue.put(lambda: process_trending_movies())
     elif 'news' in query:
+        # Fetches the latest news
         task_queue.put(lambda: process_latest_news())
     elif 'weather' in query:
+        # Provides a weather report
         task_queue.put(lambda: give_weather_report())
     elif 'screenshot' in query:
+        # Takes a screenshot
         speak("Opening the screenshot software.")
         take_screenshot()
     elif 'question' in query:
+        # Handles interacting with the AI assistant
         speak("Would you like to proceed with Text or Speech Mode?")
         mode = listen()
         if 'text' in mode:
@@ -152,7 +171,7 @@ def handle_command(query):
 
 
 def process_trending_movies():
-    """Processa e exibe filmes em alta."""
+    """Fetches and displays trending movies."""
     movies = get_trending_movies()
     message = f"Some trending movies are: {', '.join(movies)}"
     speak(message)
@@ -160,14 +179,14 @@ def process_trending_movies():
 
 
 def process_latest_news():
-    """Processa e exibe as últimas notícias."""
+    """Fetches and displays the latest news."""
     news = get_latest_news()
     speak("Here are the latest news headlines.")
     update_ui_output("\n".join(news))
 
 
 def give_weather_report():
-    """Fornece um relatório meteorológico."""
+    """Provides a weather report based on the user's location."""
     ip_address = find_my_ip()
     city = requests.get(f"https://ipapi.co/{ip_address}/city/").text
     weather, temperature, feels_like = get_weather_report(city)
@@ -177,22 +196,24 @@ def give_weather_report():
 
 
 def handle_text_input(user_input):
-    """Processa texto inserido na GUI."""
+    """Processes text input from the GUI."""
     if user_input.strip():
         formatted_input = f'User: "{user_input}"'
-        update_ui_output(formatted_input)  # Exibe o input do usuário no histórico
+        update_ui_output(formatted_input)  # Display user input in the chat history
         task_queue.put(lambda: process_text_input(user_input))
 
+
 def process_text_input(user_input):
-    """Processa a entrada de texto."""
+    """Processes text input and interacts with the AI assistant."""
     if user_input.strip():
         response = chat_with_ai(user_input)
-        formatted_response = f"{BOTNAME}: {response}"  # Formata a resposta do bot
+        formatted_response = f"{BOTNAME}: {response}"  # Formats the bot's response
         speak(response)
-        update_ui_output(formatted_response)  # Exibe a resposta no histórico
+        update_ui_output(formatted_response)  # Display the response in the chat history
+
 
 def process_queue():
-    """Processa a fila de tarefas."""
+    """Processes tasks in the queue and executes them in separate threads."""
     while not task_queue.empty():
         task = task_queue.get()
         threading.Thread(target=task).start()
@@ -200,12 +221,12 @@ def process_queue():
 
 
 def start_listening():
-    """Inicia o reconhecimento de fala."""
+    """Starts speech recognition for voice commands."""
     threading.Thread(target=lambda: handle_command(listen())).start()
 
 
 def greet_user():
-    """Cumprimenta o usuário ao iniciar."""
+    """Greets the user based on the time of day."""
     hour = datetime.now().hour
     if 6 < hour < 12:
         greet = f"Good morning, {USERNAME}!"
@@ -221,8 +242,8 @@ def greet_user():
 
 
 if __name__ == '__main__':
-    greet_user()  # Cumprimenta o usuário ao iniciar
-    gui.listen_button.config(command=start_listening)  # Conecta o botão de fala
-    gui.submit_button.config(command=lambda: handle_text_input(gui.input_entry.get()))  # Conecta o botão de texto
-    gui.root.after(100, process_queue)  # Inicia o processamento da fila
+    greet_user()  # Greet the user upon starting
+    gui.listen_button.configure(command=start_listening)  # Connect the speech button
+    gui.submit_button.configure(command=lambda: handle_text_input(gui.input_entry.get()))  # Connect the text input button
+    gui.root.after(100, process_queue)  # Start the task queue processing
     gui.run()
