@@ -1,89 +1,123 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter import PhotoImage  # Para trabalhar com imagens nos botões
+from customtkinter import *
+from PIL import Image  # To load images into CTkImage
+
 
 class JarvisGUI:
     def __init__(self):
-        self.root = tk.Tk()
+        # Initial configuration of the main window
+        set_appearance_mode("Dark")  # Enables dark mode for modern look
+        set_default_color_theme("blue")  # Sets default UI color theme
+        self.root = CTk()  # CTk is a themed replacement for tkinter.Tk
         self.root.title("Jarvis Assistant")
         self.root.geometry("800x600")
-        self.root.configure(bg='#1e1e1e')
 
-        # Title Label
-        self.title_label = tk.Label(
+        # Grid configuration for responsive layout
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(1, weight=6)
+        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
+        # Header label with a welcome message
+        self.title_label = CTkLabel(
             self.root,
-            text="Jarvis - Assistente Pessoal",
-            font=("Helvetica", 20, "bold"),
-            fg="#ffffff",
-            bg="#1e1e1e"
+            text="Good morning, Adriano\nWhat can I help you with today?",
+            font=CTkFont(size=22, weight="bold"),
+            justify="center"
         )
-        self.title_label.pack(pady=20)
+        self.title_label.grid(row=0, column=0, pady=20, sticky="n")
 
-        # Output Text Area
-        self.output_text = tk.Text(
+        # Textbox used to display assistant output
+        self.output_text = CTkTextbox(
             self.root,
-            height=20,
-            width=80,
-            bg="#2d2d2d",
-            fg="#ffffff",
-            insertbackground="#ffffff",
-            font=("Helvetica", 12)
+            height=300,
+            width=700,
+            font=CTkFont(size=14),
+            wrap="word",
+            state="disabled",  # Read-only mode
+            fg_color="#1a1a1a",  # Dark background
+            text_color="white",
+            corner_radius=10,
+            border_width=1,
+            border_color="gray"
         )
-        self.output_text.pack(padx=20, pady=10)
+        self.output_text.grid(row=1, column=0, padx=20, pady=10, sticky="nsew")
 
-        # Frame para organizar os botões
-        self.button_frame = tk.Frame(self.root, bg="#1e1e1e")
-        self.button_frame.pack(pady=10)
+        # Input frame holds the entry field and the buttons
+        self.input_frame = CTkFrame(self.root, fg_color="transparent")
+        self.input_frame.grid(row=2, column=0, pady=10, sticky="ew")
+        self.input_frame.grid_columnconfigure(0, weight=1)
+        self.input_frame.grid_columnconfigure(1, weight=5)
+        self.input_frame.grid_columnconfigure(2, weight=1)
 
-        # Text Input Entry
-        self.input_entry = tk.Entry(
-            self.root,
-            width=60,
-            font=("Helvetica", 14),
-            bg="#3c3f41",
-            fg="#ffffff",
-            insertbackground="#ffffff"
+        # Load microphone and send button icons
+        self.microphone_icon = CTkImage(
+            light_image=Image.open("assets/frame0/button_2.png"),
+            size=(20, 20)
         )
-        self.input_entry.pack(pady=10)
+        self.send_icon = CTkImage(
+            light_image=Image.open("assets/frame0/button_1.png"),
+            size=(20, 20)
+        )
 
-        # Botão para Falar com Imagem
-        self.listen_button_image = PhotoImage(file=r"C:\Users\adria\PycharmProjects\PythonProject3\assets\frame0\button_2.png")  # Substitua pelo caminho correto
-        self.listen_button = tk.Button(
-            self.button_frame,
-            image=self.listen_button_image,
+        # Button to trigger voice listening function
+        self.listen_button = CTkButton(
+            self.input_frame,
+            image=self.microphone_icon,
+            text="",
             command=self.trigger_listening,
-            bg="#1e1e1e",
-            relief="flat"
+            font=CTkFont(size=14, weight="bold"),
+            width=50,
+            height=50,
+            corner_radius=25,  # Creates a circular button
+            fg_color="#0078d7"
         )
-        self.listen_button.grid(row=0, column=0, padx=10)
+        self.listen_button.grid(row=0, column=0, padx=10, pady=5)
 
-        # Botão para Enviar Texto com Imagem
-        self.submit_button_image = PhotoImage(file=r"C:\Users\adria\PycharmProjects\PythonProject3\assets\frame0\button_1.png")  # Substitua pelo caminho correto
-        self.submit_button = tk.Button(
-            self.button_frame,
-            image=self.submit_button_image,
+        # Text entry field for manual user input
+        self.input_entry = CTkEntry(
+            self.input_frame,
+            placeholder_text="Type your message here...",
+            font=CTkFont(size=14),
+            height=40,
+            corner_radius=10,
+            border_width=2,
+            border_color="gray"
+        )
+        self.input_entry.grid(row=0, column=1, padx=10, pady=5, sticky="ew")
+
+        # Submit button sends the text input to backend logic
+        self.submit_button = CTkButton(
+            self.input_frame,
+            text="Send",
+            image=self.send_icon,
+            compound="left",
             command=self.submit_text,
-            bg="#1e1e1e",
-            relief="flat"
+            font=CTkFont(size=14, weight="bold"),
+            width=100,
+            height=40,
+            corner_radius=10
         )
-        self.submit_button.grid(row=0, column=1, padx=10)
+        self.submit_button.grid(row=0, column=2, padx=10, pady=5)
 
-        # Handle window close
+        # Handle graceful shutdown when user closes the window
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
 
     def trigger_listening(self):
-        from main import start_listening  # Import the function to start listening
+        from main import start_listening  # Calls external voice input function
         start_listening()
 
     def submit_text(self):
-        from main import handle_text_input  # Import the function to handle text input
+        from main import handle_text_input  # Calls external text input function
         user_input = self.input_entry.get()
-        self.input_entry.delete(0, tk.END)  # Clear the input field
-        handle_text_input(user_input)  # Pass the text input to the main logic
+        self.input_entry.delete(0, END)  # Clear entry after submission
+        handle_text_input(user_input)  # Pass user input to main logic
 
     def update_output(self, text):
-        self.output_text.insert(tk.END, f"{text}\n")
-        self.output_text.see(tk.END)
+        # Enables text editing, appends new message, and disables editing again
+        self.output_text.configure(state="normal")
+        self.output_text.insert(END, f"{text}\n")
+        self.output_text.yview(END)  # Scrolls to the latest line
+        self.output_text.configure(state="disabled")
 
     def _on_closing(self):
         self.root.quit()
@@ -99,5 +133,5 @@ def update_ui_output(text):
         gui.update_output(text)
 
 
-# Global instance for cross-module access
+# Global GUI instance accessible from other modules
 gui = JarvisGUI()
