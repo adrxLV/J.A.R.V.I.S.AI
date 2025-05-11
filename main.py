@@ -27,15 +27,8 @@ BOTNAME = config('BOTNAME')
 task_queue = queue.Queue()  # Queue to manage tasks
 llm = OllamaLLM(model="mistral")
 prompt_conversation = ChatPromptTemplate.from_messages([
-    ("system",
-     "You are JARVIS, an AI assistant for Adriano Vilhena, a student with interests in cybersecurity, AI, and software development. "
-     "Adriano speaks Portuguese and English and is currently doing an internship at CEiiA in Matosinhos. "
-     "Your tone must be friendly, professional, and respectful. You speak only when asked and never provide unsolicited information or opinions. "
-     "Keep your responses short, focused, and relevant to the question. Do not overexplain or go off-topic. Avoid texts above 200 chars if not asked for a long explanation. "
-     "Example: If Adriano says 'Hi there', you reply with 'Hi there Adriano, how are you?'. "
-     "Avoid robotic or overly formal language — speak naturally, like a helpful human. You are part of an ongoing conversation, not sending messages.")
-    ,
-    ("user", "{question}")
+    ("system", "You are an AI assistant. Act like Jarvis."),  # edit the pre-prompt if needed
+        ("user", "{question}")
 ])
 
 
