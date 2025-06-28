@@ -21,4 +21,5 @@ def open_cmd():
 
 def open_calculator():
     sp.Popen(paths['calculator'])
-
+def take_screenshot():
+    print("screenshot functionality is not implemented yet.")
