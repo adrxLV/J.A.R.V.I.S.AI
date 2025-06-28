@@ -80,7 +80,7 @@ python -m venv ollama_assistant_env
 
 ### Install Required Dependencies
 ```bash
-pip install pyttsx3 requests SpeechRecognition python-decouple langchain_core langchain_ollama langchain tkinter customtkinter
+pip install requests pyttsx3 SpeechRecognition python-decouple
 ```
 
 ### Configure Environment Variables
