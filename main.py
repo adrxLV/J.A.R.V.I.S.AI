@@ -81,9 +81,13 @@ class PersonalizedAssistant:
         self.ollama = StreamingOllama(model=self.model)
         self.history = []
         self.history_text = history_text
+        # FRIENDLY, CASUAL, HELPFUL PROMPT
         self.prompt_template = (
             f"{self.history_text}\n"
-            f"You are an AI assistant named {self.botname}. Give concise, helpful responses in 1-2 sentences.\n"
+            f"You are {self.botname}, an AI assistant who is also a friendly sidekick for {self.username}. "
+            "Be warm, casual, and supportive—like a buddy who always has their back. "
+            "Your tone should be fun, easygoing, and helpful, not too formal or robotic. "
+            "Keep your answers short (1-2 sentences), unless more detail is needed. Don't be afraid to add a little personality, a joke, or a friendly comment now and then.\n"
             "{ongoing}\nUser: {question}\nAI:"
         )
 
@@ -106,7 +110,7 @@ class PersonalizedAssistant:
                 print("Timeout")
             except sr.UnknownValueError:
                 print("Didn't understand audio")
-                self.tts.speak("Sorry, I couldn't understand that.")
+                self.tts.speak("Sorry, I couldn't catch that. Mind saying it again?")
             except Exception as e:
                 print(f"Recognition error: {e}")
         return None
@@ -121,9 +125,9 @@ class PersonalizedAssistant:
         google_context = ""
         if question.lower().startswith("google ") or question.lower().startswith("search on google"):
             google_query = question.partition(" ")[2] if question.lower().startswith("google ") else question.partition("search on google")[2].strip()
-            self.speak("Searching Google...")
+            self.speak("Give me a sec, googling that for you...")
             google_results = search_on_google(google_query)
-            google_context = f"\n[Google information about '{google_query}']:\n{google_results}\n"
+            google_context = f"\n[Google info about '{google_query}']:\n{google_results}\n"
 
         prompt = self.prompt_template.format(
             ongoing=ongoing + google_context,
@@ -170,10 +174,10 @@ class PersonalizedAssistant:
             ip_address = find_my_ip()
             city = requests.get(f"https://ipapi.co/{ip_address}/city/", timeout=5).text
             weather, temperature, feels_like = get_weather_report(city)
-            report = f"The temperature is {temperature} degrees, feels like {feels_like}. Weather: {weather}"
+            report = f"It's {temperature}°C in {city} and feels like {feels_like}. {weather.capitalize()} vibes today!"
             self.speak(report)
         except Exception as e:
-            self.speak("Sorry, I couldn't get the weather report.")
+            self.speak("Oops, couldn't get the weather right now. Blame the clouds!")
             print(f"Weather error: {e}")
         finally:
             self.is_processing = False
@@ -181,16 +185,16 @@ class PersonalizedAssistant:
     def greet(self):
         hour = datetime.now().hour
         if 6 <= hour < 12:
-            greeting = f"Good morning {self.username}"
+            greeting = f"Morning, {self.username}! ☀️"
         elif 12 <= hour < 16:
-            greeting = f"Good afternoon {self.username}"
+            greeting = f"Hey, good afternoon {self.username}!"
         elif 16 <= hour < 19:
-            greeting = f"Good evening {self.username}"
+            greeting = f"Evening {self.username}! Hope your day's going awesome."
         else:
-            greeting = f"Good night {self.username}"
+            greeting = f"Hey night owl {self.username}!"
         self.speak(greeting)
         time.sleep(1)
-        self.speak(f"I am {self.botname}. How may I assist you?")
+        self.speak(f"I'm {self.botname}, your trusty sidekick. What are we up to today?")
 
     def summarize_and_save_history(self):
         """Summarize conversation and save to file."""
@@ -198,8 +202,7 @@ class PersonalizedAssistant:
             return
         date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         summary_prompt = (
-            "Briefly summarize the conversation below, in English, in 3-5 lines, "
-            "including the date at the beginning of the summary (format YYYY-MM-DD HH:MM):\n"
+            "Summarize the following chat in a chill, friendly way (3-5 lines), and start with the date/time (YYYY-MM-DD HH:MM):\n"
             f"Date: {date_str}\n"
             + "\n".join(self.history[-12:])
         )
@@ -213,17 +216,17 @@ class PersonalizedAssistant:
     def handle_command(self, query):
         """Handle non-chat commands. Return True if handled, else False."""
         commands = {
-            'open notepad': (open_notepad, "Opening notepad"),
-            'open discord': (open_discord, "Opening Discord"),
-            'open command prompt': (open_cmd, "Opening command prompt"),
-            'open cmd': (open_cmd, "Opening command prompt"),
-            'open camera': (open_camera, "Opening camera"),
-            'open calculator': (open_calculator, "Opening calculator"),
-            'ip address': (lambda: self.speak(f'Your IP Address is {find_my_ip()}'), None),
+            'open notepad': (open_notepad, "On it! Notepad coming right up."),
+            'open discord': (open_discord, "Firing up Discord for you."),
+            'open command prompt': (open_cmd, "Opening command prompt, let's get nerdy!"),
+            'open cmd': (open_cmd, "Opening command prompt, let's get nerdy!"),
+            'open camera': (open_camera, "Cheese! Turning on the camera."),
+            'open calculator': (open_calculator, "Math time! Calculator's open."),
+            'ip address': (lambda: self.speak(f'Your IP Address is {find_my_ip()} (don\'t worry, I won\'t leak it!)'), None),
             'weather': (self.weather_report, None),
             'joke': (lambda: self.speak(get_random_joke()), None),
             'news': (self.report_news, None),
-            'screenshot': (take_screenshot, "Taking screenshot"),
+            'screenshot': (take_screenshot, "Screenshot time! Hold still..."),
         }
 
         for key, (func, announce) in commands.items():
@@ -233,34 +236,34 @@ class PersonalizedAssistant:
                 try:
                     func()
                 except Exception as e:
-                    self.speak(f"Could not execute command: {key}")
+                    self.speak(f"Couldn't run that command: {key}. My bad!")
                     print(f"Command error ({key}): {e}")
                 return True
 
         if 'wikipedia' in query:
-            self.speak('What do you want to search on Wikipedia?')
+            self.speak('What should I look up on Wikipedia, friend?')
             self.wait_for_speech_completion()
             search_query = self.listen()
             if search_query:
                 try:
                     results = search_on_wikipedia(search_query)
                     short_result = results[:200] + "..." if len(results) > 200 else results
-                    self.speak(f"According to Wikipedia: {short_result}")
+                    self.speak(f"Wikipedia says: {short_result}")
                 except Exception as e:
-                    self.speak("Could not search Wikipedia")
+                    self.speak("Wikipedia's not playing nice right now.")
             return True
 
         if 'youtube' in query:
-            self.speak('What do you want to play on YouTube?')
+            self.speak('What do you want to jam to on YouTube?')
             self.wait_for_speech_completion()
             video = self.listen()
             if video:
-                self.speak(f"Playing {video} on YouTube")
+                self.speak(f"Playing {video} on YouTube—enjoy!")
                 play_on_youtube(video)
             return True
 
         if 'bye' in query or 'goodbye' in query:
-            self.speak(f'Goodbye {self.username}! See you later!')
+            self.speak(f'See ya, {self.username}! Ping me anytime!')
             self.summarize_and_save_history()
             time.sleep(2)
             exit(0)
@@ -269,12 +272,12 @@ class PersonalizedAssistant:
 
     def report_news(self):
         try:
-            self.speak("Getting latest news")
+            self.speak("Let me grab some news headlines for you...")
             news = get_latest_news()
             if news:
-                self.speak(f"Here's a headline: {news[0]}")
+                self.speak(f"Here's one: {news[0]}")
         except Exception as e:
-            self.speak("Could not get news")
+            self.speak("Couldn't fetch news. I blame the internet goblins!")
 
     def run(self):
         print(f"Starting {self.botname}...")
@@ -288,12 +291,12 @@ class PersonalizedAssistant:
                 if not self.handle_command(query):
                     self.chat(query)
             except KeyboardInterrupt:
-                self.speak("Goodbye!")
+                self.speak("Alright, catch you later!")
                 self.summarize_and_save_history()
                 break
             except Exception as e:
                 print(f"Error: {e}")
-                self.speak("I encountered an error. Please try again.")
+                self.speak("Yikes, something went wrong. Want to try again?")
 
 if __name__ == '__main__':
     model = "mistral"  # Or "llama3", etc.
