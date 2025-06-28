@@ -11,7 +11,7 @@ from ollama_streaming import StreamingOllama
 from functions.online_ops import (
     find_my_ip, get_latest_news, get_random_joke,
     get_weather_report, play_on_youtube,
-    search_on_wikipedia
+    search_on_wikipedia, search_on_google
 )
 from functions.os_ops import (
     open_calculator, open_camera, open_cmd, open_notepad,
@@ -89,7 +89,7 @@ class PersonalizedAssistant:
 
     def listen(self):
         if self.is_processing:
-            return 'None'
+            return None
         recognizer = sr.Recognizer()
         recognizer.energy_threshold = 300
         recognizer.dynamic_energy_threshold = True
@@ -104,21 +104,32 @@ class PersonalizedAssistant:
                 return query.lower()
             except sr.WaitTimeoutError:
                 print("Timeout")
-                return 'None'
             except sr.UnknownValueError:
                 print("Didn't understand audio")
                 self.tts.speak("Sorry, I couldn't understand that.")
-                return 'None'
             except Exception as e:
                 print(f"Recognition error: {e}")
-                return 'None'
+        return None
 
     def chat(self, question):
         """Stream reply and speak by sentence or chunk."""
         self.is_processing = True
         print(f"\n{self.botname}: ", end="", flush=True)
         ongoing = "\n".join(self.history[-6:])
-        prompt = self.prompt_template.format(ongoing=ongoing, question=question)
+
+        # Google context addition
+        google_context = ""
+        if question.lower().startswith("google ") or question.lower().startswith("search on google"):
+            google_query = question.partition(" ")[2] if question.lower().startswith("google ") else question.partition("search on google")[2].strip()
+            self.speak("Searching Google...")
+            google_results = search_on_google(google_query)
+            google_context = f"\n[Google information about '{google_query}']:\n{google_results}\n"
+
+        prompt = self.prompt_template.format(
+            ongoing=ongoing + google_context,
+            question=question
+        )
+
         buffer = ""
         sentence_endings = {".", "!", "?"}
         max_chunk = 122
@@ -138,7 +149,6 @@ class PersonalizedAssistant:
                 if chunk:
                     speak_chunk(chunk)
                 buffer = ""
-
         if buffer.strip():
             speak_chunk(buffer.strip())
 
@@ -188,7 +198,7 @@ class PersonalizedAssistant:
             return
         date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
         summary_prompt = (
-            "Briefly summarize the conversation below, in Portuguese, in 3-5 lines, "
+            "Briefly summarize the conversation below, in English, in 3-5 lines, "
             "including the date at the beginning of the summary (format YYYY-MM-DD HH:MM):\n"
             f"Date: {date_str}\n"
             + "\n".join(self.history[-12:])
@@ -200,6 +210,72 @@ class PersonalizedAssistant:
         append_history(summary_with_date)
         print(f"\n[History saved]\n{summary_with_date}\n")
 
+    def handle_command(self, query):
+        """Handle non-chat commands. Return True if handled, else False."""
+        commands = {
+            'open notepad': (open_notepad, "Opening notepad"),
+            'open discord': (open_discord, "Opening Discord"),
+            'open command prompt': (open_cmd, "Opening command prompt"),
+            'open cmd': (open_cmd, "Opening command prompt"),
+            'open camera': (open_camera, "Opening camera"),
+            'open calculator': (open_calculator, "Opening calculator"),
+            'ip address': (lambda: self.speak(f'Your IP Address is {find_my_ip()}'), None),
+            'weather': (self.weather_report, None),
+            'joke': (lambda: self.speak(get_random_joke()), None),
+            'news': (self.report_news, None),
+            'screenshot': (take_screenshot, "Taking screenshot"),
+        }
+
+        for key, (func, announce) in commands.items():
+            if key in query:
+                if announce:
+                    self.speak(announce)
+                try:
+                    func()
+                except Exception as e:
+                    self.speak(f"Could not execute command: {key}")
+                    print(f"Command error ({key}): {e}")
+                return True
+
+        if 'wikipedia' in query:
+            self.speak('What do you want to search on Wikipedia?')
+            self.wait_for_speech_completion()
+            search_query = self.listen()
+            if search_query:
+                try:
+                    results = search_on_wikipedia(search_query)
+                    short_result = results[:200] + "..." if len(results) > 200 else results
+                    self.speak(f"According to Wikipedia: {short_result}")
+                except Exception as e:
+                    self.speak("Could not search Wikipedia")
+            return True
+
+        if 'youtube' in query:
+            self.speak('What do you want to play on YouTube?')
+            self.wait_for_speech_completion()
+            video = self.listen()
+            if video:
+                self.speak(f"Playing {video} on YouTube")
+                play_on_youtube(video)
+            return True
+
+        if 'bye' in query or 'goodbye' in query:
+            self.speak(f'Goodbye {self.username}! See you later!')
+            self.summarize_and_save_history()
+            time.sleep(2)
+            exit(0)
+
+        return False
+
+    def report_news(self):
+        try:
+            self.speak("Getting latest news")
+            news = get_latest_news()
+            if news:
+                self.speak(f"Here's a headline: {news[0]}")
+        except Exception as e:
+            self.speak("Could not get news")
+
     def run(self):
         print(f"Starting {self.botname}...")
         self.greet()
@@ -207,72 +283,9 @@ class PersonalizedAssistant:
             try:
                 self.wait_for_speech_completion()
                 query = self.listen()
-                if query == 'None' or not query.strip():
+                if not query:
                     continue
-                if 'open notepad' in query:
-                    self.speak("Opening notepad")
-                    open_notepad()
-                elif 'open discord' in query:
-                    self.speak("Opening Discord")
-                    open_discord()
-                elif 'open command prompt' in query or 'open cmd' in query:
-                    self.speak("Opening command prompt")
-                    open_cmd()
-                elif 'open camera' in query:
-                    self.speak("Opening camera")
-                    open_camera()
-                elif 'open calculator' in query:
-                    self.speak("Opening calculator")
-                    open_calculator()
-                elif 'ip address' in query:
-                    try:
-                        ip_address = find_my_ip()
-                        self.speak(f'Your IP Address is {ip_address}')
-                    except Exception as e:
-                        self.speak("Could not find IP address")
-                elif 'wikipedia' in query:
-                    self.speak('What do you want to search on Wikipedia?')
-                    self.wait_for_speech_completion()
-                    search_query = self.listen()
-                    if search_query != 'None':
-                        try:
-                            results = search_on_wikipedia(search_query)
-                            short_result = results[:200] + "..." if len(results) > 200 else results
-                            self.speak(f"According to Wikipedia: {short_result}")
-                        except Exception as e:
-                            self.speak("Could not search Wikipedia")
-                elif 'youtube' in query:
-                    self.speak('What do you want to play on YouTube?')
-                    self.wait_for_speech_completion()
-                    video = self.listen()
-                    if video != 'None':
-                        self.speak(f"Playing {video} on YouTube")
-                        play_on_youtube(video)
-                elif 'weather' in query:
-                    self.weather_report()
-                elif 'joke' in query:
-                    try:
-                        joke = get_random_joke()
-                        self.speak(joke)
-                    except Exception as e:
-                        self.speak("Sorry, I couldn't get a joke right now")
-                elif 'news' in query:
-                    try:
-                        self.speak("Getting latest news")
-                        news = get_latest_news()
-                        if news:
-                            self.speak(f"Here's a headline: {news[0]}")
-                    except Exception as e:
-                        self.speak("Could not get news")
-                elif 'screenshot' in query:
-                    self.speak("Taking screenshot")
-                    take_screenshot()
-                elif 'bye' in query or 'goodbye' in query:
-                    self.speak(f'Goodbye {self.username}! See you later!')
-                    self.summarize_and_save_history()
-                    time.sleep(2)
-                    break
-                else:
+                if not self.handle_command(query):
                     self.chat(query)
             except KeyboardInterrupt:
                 self.speak("Goodbye!")

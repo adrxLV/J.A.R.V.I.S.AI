@@ -16,8 +16,32 @@ def search_on_wikipedia(query):
 def play_on_youtube(video):
     kit.playonyt(video)
 
-def search_on_google(query):
-    kit.search(query)
+def search_on_google(query, num_results=3):
+    """Searches Google using SerpAPI and returns the titles, snippets, and links of the top results."""
+    api_key = config("SERPAPI_KEY")
+    params = {
+        "q": query,
+        "api_key": api_key,
+        "engine": "google",
+        "num": num_results,
+        "hl": "en"
+    }
+    url = "https://serpapi.com/search"
+    try:
+        resp = requests.get(url, params=params, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+        results = []
+        for item in data.get('organic_results', [])[:num_results]:
+            title = item.get('title', 'No title')
+            snippet = item.get('snippet', 'No description')
+            link = item.get('link', 'No link')
+            results.append(f"{title}\n{snippet}\nLink: {link}")
+        return "\n\n".join(results) if results else "No results found on Google."
+    except requests.exceptions.RequestException as e:
+        return f"Error accessing API: {e}"
+    except Exception as e:
+        return f"Unexpected error: {e}"
 
 def send_whatsapp_message(number, message):
     kit.sendwhatmsg_instantly(f"+351{number}", message)
