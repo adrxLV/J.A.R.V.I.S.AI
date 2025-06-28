@@ -126,7 +126,7 @@ class PersonalizedAssistant:
         def speak_chunk(chunk):
             self.tts.speak(chunk)
             while self.tts.is_busy():
-                time.sleep(0.06)
+                time.sleep(0.07)
 
         reply = ""
         for token in self.ollama.generate_stream(prompt):
